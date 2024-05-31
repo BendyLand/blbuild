@@ -23,9 +23,9 @@
  - **flags** (array of strings)
      - Compiler flags. 
      - Certain flags will require additional fields (e.g. -o would require an output file name).
- - **options** (array of arrays of strings; one array for each flag)
+ - **options** (array of arrays of strings)
      - Options for the compiler flags. 
-     - Array containing an array of strings for each flag.
+     - One array for each flag, even if it is empty. 
      - *These must be presented in the same order as the options in the 'flags' field.*
 
 ## Examples
