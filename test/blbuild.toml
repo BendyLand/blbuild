@@ -1,4 +1,0 @@
-compiler = "g++"
-files = ["one.cpp", "two.cpp", "three.cpp"]
-flags = ["-o"]
-options = [["run"]]

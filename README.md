@@ -18,6 +18,8 @@
 
  - **compiler** (string)
      - The compiler to use.
+ - **path** (string)
+     - The path to prepend to each file name.
  - **files** (array of strings)
      - The files to be compiled.
  - **flags** (array of strings)
