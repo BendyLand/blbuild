@@ -1,0 +1,6 @@
+# this one is for testing purposes and so I can experiment freely.
+
+compiler = "g++"
+files = ["one.cpp", "two.cpp", "three.cpp"]
+flags = ["-o"]
+options = [["run"]]

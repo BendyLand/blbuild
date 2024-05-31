@@ -31,7 +31,7 @@
 ## Examples
 
 ```toml
-# blbuild
+# blbuild.toml
 compiler = "gcc"
 files = ["hello.c"]
 flags = ["-o"]
@@ -41,7 +41,7 @@ options = [["hello"]]
 ```
 
 ```toml
-# blbuild
+# blbuild.toml
 compiler = "g++"
 files = ["one.cpp", "two.cpp", "three.cpp"]
 flags = ["-o"]
@@ -51,7 +51,7 @@ options = [["run"]]
 ```
 
 ```toml
-# blbuild
+# blbuild.toml
 compiler = "g++"
 files = ["*.cpp"]
 flags = ["--std=c++20", "-o"]
