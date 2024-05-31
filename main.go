@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"path/filepath"
 	"github.com/BurntSushi/toml"
 	"os"
 	"os/exec"
@@ -9,17 +10,24 @@ import (
 )
 
 func main() {
-	file, err := readConfigFile()
+	configPath, err := findConfigFile()
 	if err != nil {
-		fmt.Println(err)
+		fmt.Println("Error finding config file:", err)
 		return
 	}
-	tokens := parseConfigFile(file)
+
+	file, err := os.ReadFile(configPath)
+	if err != nil {
+		fmt.Println("Error reading file:", err)
+	}
+
+	tokens := parseConfigFile(string(file))
 	commandStr, err := constructCommandString(tokens)
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
+
 	fmt.Printf("Running: `%s`\n", commandStr)
 	cmd := exec.Command("sh", "-c", commandStr)
 	_, err = cmd.CombinedOutput()
@@ -27,6 +35,7 @@ func main() {
 		fmt.Println(err)
 		return
 	}
+
 	fmt.Println("Compiled successfully!")
 }
 
@@ -42,7 +51,7 @@ func constructCommandString(config Config) (string, error) {
 	result := config.Compiler + " "
 	files := ""
 	for _, file := range config.Files {
-		files += config.Path + "/" + file + " "
+		files += config.Path + file + " "
 	}
 	result += files
 	var pairs []string
@@ -65,11 +74,22 @@ func parseConfigFile(file string) Config {
 	return config
 }
 
-func readConfigFile() (string, error) {
-	file, err := os.ReadFile("./blbuild.toml")
+func findConfigFile() (string, error) {
+	// Look for blbuild.toml in the current directory and its parents
+	dir, err := os.Getwd()
 	if err != nil {
-		myErr := fmt.Errorf("No config file found.\nPlease create `blbuild.toml` in your root directory.\n")
-		return "", myErr
+		return "", err
 	}
-	return string(file), nil
+	for {
+		configPath := filepath.Join(dir, "blbuild.toml")
+		if _, err := os.Stat(configPath); err == nil {
+			return configPath, nil
+		}
+		parentDir := filepath.Dir(dir)
+		if parentDir == dir {
+			break
+		}
+		dir = parentDir
+	}
+	return "", fmt.Errorf("No config file found. Please create `blbuild.toml` in your project directory or its parent directories.")
 }
