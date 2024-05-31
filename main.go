@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/BurntSushi/toml"
 	"os"
+	"os/exec"
 	"strings"
 )
 
@@ -14,13 +15,19 @@ func main() {
 		return
 	}
 	tokens := parseConfigFile(file)
-	fmt.Println(tokens)
 	commandStr, err := constructCommandString(tokens)
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
-	fmt.Println(commandStr)
+	fmt.Printf("Running: `%s`\n", commandStr)
+	cmd := exec.Command("sh", "-c", commandStr)	
+	_, err = cmd.CombinedOutput()
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	fmt.Println("Compiled successfully!")
 }
 
 type Config struct {
