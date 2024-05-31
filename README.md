@@ -1,5 +1,7 @@
 # blbuild
 
+*blbuild is in its early stages and is currently non-functional.*
+
 `blbuild` is a simple build tool for managing projects in a compiled language!
 
 ## Purpose
