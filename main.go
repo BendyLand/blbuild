@@ -20,8 +20,8 @@ func main() {
 		fmt.Println("Error reading file:", err)
 	}
 
-	tokens := parseConfigFile(string(file))
-	commandStr, err := constructCommandString(tokens)
+	config := parseConfigFile(string(file))
+	commandStr, err := constructCommandString(config)
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -43,6 +43,7 @@ type Config struct {
 	Path     string
 	Files    []string
 	Extras   []string
+	BuildDir string
 }
 
 func constructCommandString(config Config) (string, error) {
