@@ -8,7 +8,6 @@ import (
 	"path/filepath"
 )
 
-// todo: refactor to use positional arguments and groups, rather than "official" names
 func main() {
 	configPath, err := findConfigFile()
 	if err != nil {
@@ -27,7 +26,7 @@ func main() {
 		fmt.Println(err)
 		return
 	}
-	
+
 	fmt.Printf("Running: `%s`\n", commandStr)
 	cmd := exec.Command("sh", "-c", commandStr)
 	_, err = cmd.CombinedOutput()
