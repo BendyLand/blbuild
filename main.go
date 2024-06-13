@@ -2,13 +2,13 @@ package main
 
 import (
 	"fmt"
-	"path/filepath"
 	"github.com/BurntSushi/toml"
 	"os"
 	"os/exec"
-	"strings"
+	"path/filepath"
 )
 
+// todo: refactor to use positional arguments and groups, rather than "official" names
 func main() {
 	configPath, err := findConfigFile()
 	if err != nil {
@@ -27,7 +27,7 @@ func main() {
 		fmt.Println(err)
 		return
 	}
-
+	
 	fmt.Printf("Running: `%s`\n", commandStr)
 	cmd := exec.Command("sh", "-c", commandStr)
 	_, err = cmd.CombinedOutput()
@@ -43,28 +43,20 @@ type Config struct {
 	Compiler string
 	Path     string
 	Files    []string
-	Flags    []string
-	Options  [][]string
+	Extras   []string
 }
 
 func constructCommandString(config Config) (string, error) {
 	result := config.Compiler + " "
 	files := ""
 	for _, file := range config.Files {
-		files += config.Path + file + " "
+		fullPath := filepath.Join(config.Path, file)
+		files += fullPath + " "
 	}
 	result += files
-	var pairs []string
-	if len(config.Flags) != len(config.Options) {
-		err := fmt.Errorf("Wrong number of options provided.")
-		return "", err
+	for _, extra := range config.Extras {
+		result += extra
 	}
-	for i, flag := range config.Flags {
-		pair := flag + " " + strings.Join(config.Options[i], " ")
-		pairs = append(pairs, pair)
-	}
-	flagsOptions := strings.Join(pairs, " ")
-	result += flagsOptions
 	return result, nil
 }
 
