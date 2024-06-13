@@ -22,42 +22,38 @@
      - The path to prepend to each file name.
  - **files** (array of strings)
      - The files to be compiled.
- - **flags** (array of strings)
-     - Compiler flags. 
-     - Certain flags will require additional fields (e.g. -o would require an output file name).
- - **options** (array of arrays of strings)
-     - Options for the compiler flags. 
-     - One array for each flag, even if it is empty. 
-     - *These must be presented in the same order as the options in the 'flags' field.*
+ - **extras** (array of strings)
+     - Anything else to include in the command.
+
 
 ## Examples
 
 ```toml
 # blbuild.toml
 compiler = "gcc"
+path = "" 
 files = ["hello.c"]
-flags = ["-o"]
-options = [["hello"]]
+extras = ["-o hello"]
 
-# blbuild -> gcc hello.c -o hello
+# Result: gcc hello.c -o hello
 ```
 
 ```toml
 # blbuild.toml
 compiler = "g++"
+path = "ex"
 files = ["one.cpp", "two.cpp", "three.cpp"]
-flags = ["-o"]
-options = [["run"]]
+extras = ["-o run"]
 
-# blbuild -> g++ one.cpp two.cpp three.cpp -o run
+# Result: g++ ex/one.cpp ex/two.cpp ex/three.cpp -o run
 ```
 
 ```toml
 # blbuild.toml
-compiler = "g++"
+compiler = "g++ --std=c++20"
+path = ""
 files = ["*.cpp"]
-flags = ["--std=c++20", "-o"]
-options = [[], ["run"]]
+extras = ["-o run"]
 
-# blbuild -> g++ --std=c++20 *.cpp -o run
+# Result: g++ --std=c++20 *.cpp -o run
 ```
