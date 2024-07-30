@@ -2,8 +2,9 @@ package full
 
 import (
 	"blbuild/config"
-	"path/filepath"
 	"blbuild/utils"
+	"fmt"
+	"path/filepath"
 )
 
 func ConstructCompileAllFilesCommand(config config.Config) string {
@@ -20,7 +21,7 @@ func ConstructCompileAllFilesCommand(config config.Config) string {
 		}
 	}
 	if len(config.Include) > 0 {
-		result += config.Include + " "
+		result += "-I " + config.Include + " "
 	}
 	return result
 }
@@ -39,7 +40,8 @@ func ConstructFullBuildCommand(config config.Config) string {
 		}
 	}
 	if len(config.Include) > 0 {
-		result += config.Include + " "
+		result += "-I " + config.Include + " "
+		fmt.Println(result)
 	}
 	result += "-o " + config.Final
 	return result
@@ -53,7 +55,7 @@ func ConstructBuildCompiledFilesCmd(config config.Config) string {
 	}
 	result += config.Path + "/*.o "
 	if len(config.Include) > 0 {
-		result += config.Include + " "
+		result += "-I " + config.Include + " "
 	}
 	result += "-o " + config.Final
 	return result
