@@ -15,7 +15,6 @@ type Config struct {
 	Path     string
 	Files    []string
 	Include  string
-	Outputs  []string
 	Final    string
 }
 
@@ -48,21 +47,11 @@ func getMissingConfigFields() []string {
 	include, _ := stdin.ReadString('\n')
 	include = strings.Trim(include, "\n")
 
-	fmt.Println("Please enter all of the output names separated by spaces, and then a newline.")
-	outputsStr, _ := stdin.ReadString('\n')
-	outputs := strings.Split(outputsStr, " ")
-	for i := range len(outputs) {
-		outputs[i] = strings.Trim(outputs[i], "\n")
-		outputs[i] = "\"" + outputs[i] + "\""
-	}
-	temp2 := strings.Trim(strings.Join(files, ", "), "\n")
-	outputsStr = "[" + temp2 + "]"
-
 	fmt.Println("Please enter the name you would like to use for the final executable.")
 	final, _ := stdin.ReadString('\n')
 	final = strings.Trim(final, "\n")
 
-	lines := []string{compiler, std, path, filesStr, include, outputsStr, final}
+	lines := []string{compiler, std, path, filesStr, include, final}
 	return lines
 }
 
@@ -82,8 +71,6 @@ func createMissingConfigFile() string {
 		case 4:
 			result += "include = \"" + line + "\"\n"
 		case 5:
-			result += "outputs = " + line + "\n"
-		case 6:
 			result += "final = \"" + line + "\"\n"
 		}
 	}
@@ -135,13 +122,6 @@ func ConstructConfig(config string) Config {
 		case 4:
 			result.Include = utils.ExtractConfigValue(line)
 		case 5:
-			temp := utils.ExtractConfigValue(line)
-			temp = strings.Trim(temp, "[]")
-			items := strings.Split(temp, ", ")
-			for _, item := range items {
-				result.Outputs = append(result.Outputs, item)
-			}
-		case 6:
 			result.Final = utils.ExtractConfigValue(line)
 		}
 	}
