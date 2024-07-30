@@ -8,8 +8,7 @@ The intended usage for this tool is to simplify the process of building projects
 
 This tool relies on a configuration file called `blbuild.toml`. If this file does not exist, the program will prompt you for all of the necessary information, then generate the file for you. 
 
-Currently, there are a few ways to interact with the CLI:
-(For these examples '`blbuild`' is going to act as the CLI command.)
+Currently, there are a few ways to interact with the CLI (For these examples '`blbuild`' is going to act as the CLI command.):
 
 ### Build Project Directly
  - `blbuild`: You can run the tool without any arguments.
