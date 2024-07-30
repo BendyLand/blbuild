@@ -68,3 +68,7 @@ g++ -std=c++20 test/*.o -o main
 # and produce:
 # main (an executable binary)
 ```
+
+## Future Plans
+
+I would like to be able to automate more of these steps. Ideally, I would like a single command to be able to rebuild the project when editing a single file (out of many). 

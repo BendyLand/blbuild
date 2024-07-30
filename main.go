@@ -38,7 +38,6 @@ func buildAllFiles(config config.Config) {
 		fmt.Println("Error executing build command:", err)
 		os.Exit(1)
 	}
-	fmt.Println(config.Path, len(config.Path))
 	if len(config.Path) > 0 {
 		mvCmd := fmt.Sprintf("mv %s %s", config.Final, config.Path)
 		cmd = exec.Command("sh", "-c", mvCmd)

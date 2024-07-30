@@ -51,7 +51,11 @@ func ConstructBuildCompiledFilesCmd(config config.Config) string {
 	if len(config.Std) > 0 {
 		result += "-std=" + config.Std + " "
 	}
-	result += config.Path + "/*.o "
+	if len(config.Path) > 0 {
+		result += config.Path + "/*.o "
+	} else {
+		result += "*.o "
+	}
 	if len(config.Include) > 0 {
 		result += "-I " + config.Include + " "
 	}

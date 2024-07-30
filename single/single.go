@@ -16,6 +16,8 @@ func ConstructSingleFileCompilationCmd(name string, config config.Config) string
 	if len(config.Path) > 0 {
 		line := config.Path + "/" + name
 		result += line
+	} else {
+		result += name
 	}
 	return result
 }
