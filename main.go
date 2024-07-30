@@ -1,9 +1,9 @@
 package main
 
 import (
-	"blbuild/config"
-	"blbuild/full"
-	"blbuild/single"
+	"blbld/config"
+	"blbld/full"
+	"blbld/single"
 	"fmt"
 	"os"
 	"os/exec"

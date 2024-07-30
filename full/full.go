@@ -1,8 +1,8 @@
 package full
 
 import (
-	"blbuild/config"
-	"blbuild/utils"
+	"blbld/config"
+	"blbld/utils"
 	"path/filepath"
 )
 

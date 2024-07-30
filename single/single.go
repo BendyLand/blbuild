@@ -1,7 +1,7 @@
 package single
 
 import (
-	"blbuild/config"
+	"blbld/config"
 )
 
 func ConstructSingleFileCompilationCmd(name string, config config.Config) string {

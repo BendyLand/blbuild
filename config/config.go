@@ -1,7 +1,7 @@
 package config
 
 import (
-	"blbuild/utils"
+	"blbld/utils"
 	"bufio"
 	"fmt"
 	"os"
@@ -74,7 +74,7 @@ func createMissingConfigFile() string {
 			result += "final = \"" + line + "\"\n"
 		}
 	}
-	file, err := os.Create("blbuild.toml")
+	file, err := os.Create("blbld.toml")
 	if err != nil {
 		fmt.Println("Error automatically creating build file.\nPlease make your own to avoid re-entering details each time.")
 	} else {
@@ -86,7 +86,7 @@ func createMissingConfigFile() string {
 
 func GetConfigFile() (string, error) {
 	path, err := os.Getwd()
-	configPath := filepath.Join(path, "blbuild.toml")
+	configPath := filepath.Join(path, "blbld.toml")
 	_, err = os.Stat(configPath)
 	if err == nil {
 		result, err := os.ReadFile(configPath)
