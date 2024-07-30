@@ -1,4 +1,4 @@
-# blbld
+# Bland Build Tool (blbld)
 
 A simple build tool for C/C++ projects!
 
