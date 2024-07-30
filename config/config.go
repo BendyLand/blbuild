@@ -121,7 +121,6 @@ func ConstructConfig(config string) Config {
 			}
 		case 4:
 			result.Include = utils.ExtractConfigValue(line)
-			fmt.Println(result.Include)
 		case 5:
 			result.Final = utils.ExtractConfigValue(line)
 		}

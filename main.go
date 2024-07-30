@@ -69,6 +69,7 @@ func compileAllFiles(config config.Config) {
 
 func compileSingleFile(name string, config config.Config) {
 	command := single.ConstructSingleFileCompilationCmd(name, config)
+	fmt.Println(command)
 	fmt.Printf("Compiling '%s'...\n", name)
 	cmd := exec.Command("sh", "-c", command)
 	_, err := cmd.Output()

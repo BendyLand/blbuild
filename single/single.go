@@ -11,7 +11,7 @@ func ConstructSingleFileCompilationCmd(name string, config config.Config) string
 		result += "-std=" + config.Std + " -c "
 	}
 	if len(config.Include) > 0 {
-		result += config.Include + " "
+		result += "-I " + config.Include + " "
 	}
 	if len(config.Path) > 0 {
 		line := config.Path + "/" + name

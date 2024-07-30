@@ -3,7 +3,6 @@ package full
 import (
 	"blbuild/config"
 	"blbuild/utils"
-	"fmt"
 	"path/filepath"
 )
 
@@ -41,7 +40,6 @@ func ConstructFullBuildCommand(config config.Config) string {
 	}
 	if len(config.Include) > 0 {
 		result += "-I " + config.Include + " "
-		fmt.Println(result)
 	}
 	result += "-o " + config.Final
 	return result
