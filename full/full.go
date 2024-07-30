@@ -4,8 +4,6 @@ import (
 	"blbuild/config"
 	"path/filepath"
 	"blbuild/utils"
-	"os"
-	"fmt"
 )
 
 func ConstructCompileAllFilesCommand(config config.Config) string {

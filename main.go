@@ -17,9 +17,7 @@ func main() {
 	if len(os.Args) > 1 {
 		if slices.Contains(os.Args, "compile") {
 			if len(os.Args) == 2 {
-				fmt.Println("Compiling all files...")
 				compileAllFiles(config)
-				fmt.Println("Files compiled successfully!")
 			} else {
 				compileSingleFile(os.Args[2], config)
 			}
@@ -27,20 +25,32 @@ func main() {
 			buildCompiledFiles(config)
 		}
 	} else {
-		command := full.ConstructFullBuildCommand(config)
-		fmt.Println("Running:", command)
-		cmd := exec.Command("sh", "-c", command)
-		_, err := cmd.Output()
-		if err != nil {
-			fmt.Println("Error executing build command:", err)
-			os.Exit(1)
-		}
-		fmt.Println("Project built successfully!")
+		buildAllFiles(config)
 	}
+}
+
+func buildAllFiles(config config.Config) {
+	command := full.ConstructFullBuildCommand(config)
+	fmt.Println("Running:", command)
+	cmd := exec.Command("sh", "-c", command)
+	_, err := cmd.Output()
+	if err != nil {
+		fmt.Println("Error executing build command:", err)
+		os.Exit(1)
+	}
+	mvCmd := fmt.Sprintf("mv %s %s", config.Final, config.Path)
+	cmd = exec.Command("sh", "-c", mvCmd)
+	_, err = cmd.Output()
+	if err != nil {
+		fmt.Println("Error executing move command:", err)
+		os.Exit(1)
+	}
+	fmt.Println("Project built successfully!")
 }
 
 func compileAllFiles(config config.Config) {
 	command := full.ConstructCompileAllFilesCommand(config)
+	fmt.Println("Running:", command)
 	cmd := exec.Command("sh", "-c", command)
 	_, err := cmd.Output()
 	if err != nil {
@@ -54,10 +64,12 @@ func compileAllFiles(config config.Config) {
 		fmt.Println("Error executing move command:", err)
 		os.Exit(1)
 	}
+	fmt.Println("Files compiled successfully!")
 }
 
 func compileSingleFile(name string, config config.Config) {
 	command := single.ConstructSingleFileCompilationCmd(name, config)
+	fmt.Printf("Compiling '%s'...\n", name)
 	cmd := exec.Command("sh", "-c", command)
 	_, err := cmd.Output()
 	if err != nil {
@@ -72,10 +84,12 @@ func compileSingleFile(name string, config config.Config) {
 		fmt.Println("Error executing move command:", err)
 		os.Exit(1)
 	}
+	fmt.Println("File compiled successfully!")
 }
 
 func buildCompiledFiles(config config.Config) {
 	command := full.ConstructBuildCompiledFilesCmd(config)
+	fmt.Println("Running:", command)
 	cmd := exec.Command("sh", "-c", command)
 	_, err := cmd.Output()
 	if err != nil {
@@ -89,4 +103,5 @@ func buildCompiledFiles(config config.Config) {
 		fmt.Println("Error executing move command:", err)
 		os.Exit(1)
 	}
+	fmt.Println("Project built successfully!")
 }
