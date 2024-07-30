@@ -3,4 +3,4 @@ std = "c++20"
 path = "test"
 files = ["one.cpp", "two.cpp", "three.cpp"]
 include = ""
-final = "build/run"
+final = "run"

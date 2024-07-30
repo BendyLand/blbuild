@@ -23,6 +23,8 @@ func main() {
 			} else {
 				compileSingleFile(os.Args[2], config)
 			}
+		} else if slices.Contains(os.Args, "build") {
+			buildCompiledFiles(config)
 		}
 	} else {
 		command := full.ConstructFullBuildCommand(config)
@@ -56,7 +58,6 @@ func compileAllFiles(config config.Config) {
 
 func compileSingleFile(name string, config config.Config) {
 	command := single.ConstructSingleFileCompilationCmd(name, config)
-	fmt.Println(command)
 	cmd := exec.Command("sh", "-c", command)
 	_, err := cmd.Output()
 	if err != nil {
@@ -65,6 +66,23 @@ func compileSingleFile(name string, config config.Config) {
 	}
 	filename := name[:strings.LastIndex(name, ".")]
 	mvCmd := fmt.Sprintf("mv %s.o %s", filename, config.Path)
+	cmd = exec.Command("sh", "-c", mvCmd)
+	_, err = cmd.Output()
+	if err != nil {
+		fmt.Println("Error executing move command:", err)
+		os.Exit(1)
+	}
+}
+
+func buildCompiledFiles(config config.Config) {
+	command := full.ConstructBuildCompiledFilesCmd(config)
+	cmd := exec.Command("sh", "-c", command)
+	_, err := cmd.Output()
+	if err != nil {
+		fmt.Println("Error executing build command:", err)
+		os.Exit(1)
+	}
+	mvCmd := fmt.Sprintf("mv %s %s", config.Final, config.Path)
 	cmd = exec.Command("sh", "-c", mvCmd)
 	_, err = cmd.Output()
 	if err != nil {
