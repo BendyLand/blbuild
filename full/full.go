@@ -16,7 +16,7 @@ func ConstructCompileAllFilesCommand(config config.Config) string {
 		if len(config.Path) > 0 {
 			result += filepath.Join(config.Path, utils.RemoveQuotes(file)) + " "
 		} else {
-			result += file + " "
+			result += utils.RemoveQuotes(file) + " "
 		}
 	}
 	if len(config.Include) > 0 {
@@ -35,7 +35,7 @@ func ConstructFullBuildCommand(config config.Config) string {
 		if len(config.Path) > 0 {
 			result += filepath.Join(config.Path, utils.RemoveQuotes(file)) + " "
 		} else {
-			result += file + " "
+			result += utils.RemoveQuotes(file) + " "
 		}
 	}
 	if len(config.Include) > 0 {
