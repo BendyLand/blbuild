@@ -1,0 +1,8 @@
+compiler = "g++"
+std = "c++20"
+path = "test"
+files = ["one.cpp", "two.cpp", "three.cpp"]
+include = ""
+outputPath = "build"
+outputs = ["one.cpp", "two.cpp", "three.cpp"]
+final = "run"
