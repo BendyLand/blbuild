@@ -6,6 +6,8 @@ A simple build tool for C/C++ projects!
 
 The intended usage for this tool is to simplify the process of building projects that contain many files, but only a few that are changing at a given moment. 
 
+**Note:** This tool was created with C/C++ in mind. While it may, by chance, work with other languages, its behavior will likely not be consistent. I have another, more generic tool: [blrun](https://github.com/BendyLand/blrun) that may give better results in other languages. 
+
 This tool relies on a configuration file called `blbld.toml`. If this file does not exist, the program will prompt you for all of the necessary information, then generate the file for you. 
 
 Currently, there are a few ways to interact with the CLI (For these examples '`blbld`' is going to act as the CLI command.):
