@@ -29,7 +29,7 @@ Currently, there are a few ways to interact with the CLI (For these examples '`b
  - `blbld build`: This is the step you take after compiling a single file.
    - This will link all of the object files and compile them to the final binary.
 
-### Compile Single File then Build Compile Files
+### Compile Single File then Build Compiled Files
  - `blbld update file.cpp`: This combines the previous two steps into one command. 
    - It will simply run the functions to compile a single file, then build the compile files back to back. 
 
