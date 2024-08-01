@@ -31,12 +31,25 @@ func main() {
 				fmt.Println("Not enough arguments. Please provide a file.")
 				return
 			}
-		 	compileSingleFile(os.Args[2], config)
+			compileSingleFile(os.Args[2], config)
 			buildCompiledFiles(config)
+		} else if slices.Contains(os.Args, "help") {
+			printHelp()
 		}
 	} else {
 		buildAllFiles(config)
 	}
+}
+
+func printHelp() {
+	commands := []string{"compile", "compile <file.c/cpp>", "build", "update <file.c/cpp>", "print", "help"}
+	descriptions := []string{"Compiles all files using -c.", "Compiles the provided file using -c.", "Links every .o file into an executable.", "Compiles the provided file using -c then builds every .o file in one command.", "Prints the full command to the console, but doesn't run it.", "Shows this menu."}
+	fmt.Println("USAGE: blbld <opt_command> <opt_file>")
+	fmt.Println("Valid commands:")
+	for i, command := range commands {
+		fmt.Println(command, "-", descriptions[i])
+	}
+	fmt.Println("Running `blbld` with no arguments compiles everything directly to an executable.")
 }
 
 func buildAllFiles(config config.Config) {
