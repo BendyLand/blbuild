@@ -19,13 +19,21 @@ Currently, there are a few ways to interact with the CLI (For these examples '`b
    - This step is necessary to be able to link individual files back to the rest of the project. While the purpose of this tool is to avoid compiling the entire project every time, everything will still need to be compiled once at the start to be available to use. Luckily, this step is only necessary once. 
    - The output of this command will be all of the corresponding object files (e.g. `one.cpp` and `two.cpp` would become `one.o` and `two.o`)
 
-### Compile Individual Files
- - `blbld compile two.cpp`: This is the important step; you can compile an individual file to its corresponding object file without touching the others.
+### Compile Individual File
+ - `blbld compile file.cpp`: This is the important step; you can compile an individual file to its corresponding object file without touching the others.
    - This will compile a singular .cpp file to a singular .o file. 
  
 ### Build Compiled Files
  - `blbld build`: This is the step you take after compiling a single file.
    - This will link all of the object files and compile them to the final binary.
+
+### Compile Single File then Build Compile Files
+ - `blbld update file.cpp`: This combines the previous two steps into one command. 
+   - It will simply run the functions to compile a single file, then build the compile files back to back. 
+
+### Print the Full Build Command
+ - `blbld print`: This constructs the command from `blbld` and prints it to the console. 
+   - This can be handy if you want to copy the command without running, to add things additional flags (such as -g).
 
 ## Examples
 
@@ -67,6 +75,26 @@ go run . build
 g++ -std=c++20 test/*.o -o main
 # and produce:
 # main (an executable binary)
+```
+
+Updating single file:
+```bash
+go run . update two.cpp
+# will print:
+# Compiling 'two.cpp'...
+# and produce:
+# test/two.o
+# then it will run: 
+g++ -std=c++20 test/*.o -o main
+# and produce:
+# main (an executable binary)
+```
+
+Printing the full command:
+```bash
+go run . print
+# will print:
+g++ -std=c++20 bigtest/src/*.o -I bigtest/src/include -o main
 ```
 
 ## Future Plans
