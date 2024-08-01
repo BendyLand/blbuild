@@ -23,6 +23,16 @@ func main() {
 			}
 		} else if slices.Contains(os.Args, "build") {
 			buildCompiledFiles(config)
+		} else if slices.Contains(os.Args, "print") {
+			cmd := full.ConstructBuildCompiledFilesCmd(config)
+			fmt.Println(cmd)
+		} else if slices.Contains(os.Args, "update") {
+			if len(os.Args) == 2 {
+				fmt.Println("Not enough arguments. Please provide a file.")
+				return
+			}
+		 	compileSingleFile(os.Args[2], config)
+			buildCompiledFiles(config)
 		}
 	} else {
 		buildAllFiles(config)
