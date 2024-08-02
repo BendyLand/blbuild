@@ -24,7 +24,7 @@ func main() {
 		} else if slices.Contains(os.Args, "build") {
 			buildCompiledFiles(config)
 		} else if slices.Contains(os.Args, "print") {
-			cmd := full.ConstructBuildCompiledFilesCmd(config)
+			cmd := full.ConstructFullBuildCommand(config)
 			fmt.Println(cmd)
 		} else if slices.Contains(os.Args, "update") {
 			if len(os.Args) == 2 {
