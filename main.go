@@ -4,11 +4,13 @@ import (
 	"blbld/config"
 	"blbld/full"
 	"blbld/single"
+	"blbld/utils"
 	"fmt"
 	"os"
 	"os/exec"
 	"slices"
 	"strings"
+	"sync"
 )
 
 func main() {
@@ -35,15 +37,32 @@ func main() {
 			buildCompiledFiles(config)
 		} else if slices.Contains(os.Args, "help") {
 			printHelp()
+		} else if slices.Contains(os.Args, "make") {
+			makeFiles(config)
 		}
 	} else {
 		buildAllFiles(config)
 	}
 }
 
+func makeFiles(config config.Config) {
+	var wg sync.WaitGroup
+	for _, file := range config.Files {
+		file := utils.RemoveQuotes(file)
+		wg.Add(1)
+		go func(file string) {
+			defer wg.Done()
+			compileSingleFile(file, config)
+		}(file)
+	}
+	wg.Wait()
+	fmt.Println("All files compiled successfully!")
+	buildCompiledFiles(config)
+}
+
 func printHelp() {
-	commands := []string{"compile", "compile <file.c/cpp>", "build", "update <file.c/cpp>", "print", "help"}
-	descriptions := []string{"Compiles all files using -c.", "Compiles the provided file using -c.", "Links every .o file into an executable.", "Compiles the provided file using -c then builds every .o file in one command.", "Prints the full command to the console, but doesn't run it.", "Shows this menu."}
+	commands := []string{"compile", "compile <file.c/cpp>", "build", "update <file.c/cpp>", "print", "make", "help"}
+	descriptions := []string{"Compiles all files using -c.", "Compiles the provided file using -c.", "Links every .o file into an executable.", "Compiles the provided file using -c then builds every .o file in one command.", "Prints the full command to the console, but doesn't run it.", "Concurrently compiles each file independently with -c, then links the .o files together.", "Shows this menu."}
 	fmt.Println("USAGE: blbld <opt_command> <opt_file>")
 	fmt.Println("Valid commands:")
 	for i, command := range commands {
@@ -97,7 +116,6 @@ func compileAllFiles(config config.Config) {
 func compileSingleFile(name string, config config.Config) {
 	command := single.ConstructSingleFileCompilationCmd(name, config)
 	fmt.Println(command)
-	fmt.Printf("Compiling '%s'...\n", name)
 	cmd := exec.Command("sh", "-c", command)
 	_, err := cmd.Output()
 	if err != nil {
