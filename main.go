@@ -73,7 +73,7 @@ func printHelp() {
 
 func buildAllFiles(config config.Config) {
 	command := full.ConstructFullBuildCommand(config)
-	fmt.Println("Running:", command)
+	fmt.Println(command)
 	cmd := exec.Command("sh", "-c", command)
 	_, err := cmd.Output()
 	if err != nil {
@@ -94,7 +94,7 @@ func buildAllFiles(config config.Config) {
 
 func compileAllFiles(config config.Config) {
 	command := full.ConstructCompileAllFilesCommand(config)
-	fmt.Println("Running:", command)
+	fmt.Println(command)
 	cmd := exec.Command("sh", "-c", command)
 	_, err := cmd.Output()
 	if err != nil {
@@ -132,12 +132,12 @@ func compileSingleFile(name string, config config.Config) {
 			os.Exit(1)
 		}
 	}
-	fmt.Println("File compiled successfully!")
+	fmt.Printf("'%s' compiled successfully!\n", name)
 }
 
 func buildCompiledFiles(config config.Config) {
 	command := full.ConstructBuildCompiledFilesCmd(config)
-	fmt.Println("Running:", command)
+	fmt.Println(command)
 	cmd := exec.Command("sh", "-c", command)
 	_, err := cmd.Output()
 	if err != nil {
