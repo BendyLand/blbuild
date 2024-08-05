@@ -9,6 +9,8 @@ func ConstructSingleFileCompilationCmd(name string, config config.Config) string
 	result += config.Compiler + " "
 	if len(config.Std) > 0 {
 		result += "-std=" + config.Std + " -c "
+	} else {
+		result += "-c "
 	}
 	if len(config.Include) > 0 {
 		result += "-I " + config.Include + " "

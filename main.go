@@ -27,6 +27,9 @@ func main() {
 			buildCompiledFiles(config)
 		} else if slices.Contains(os.Args, "print") {
 			cmd := full.ConstructFullBuildCommand(config)
+			if slices.Contains(os.Args, "debug") {
+				cmd += " -g"
+			}
 			fmt.Println(cmd)
 		} else if slices.Contains(os.Args, "update") {
 			if len(os.Args) == 2 {
@@ -39,9 +42,11 @@ func main() {
 			printHelp()
 		} else if slices.Contains(os.Args, "make") {
 			makeFiles(config)
+		} else if slices.Contains(os.Args, "debug") {
+			buildAllFiles(config, true)
 		}
 	} else {
-		buildAllFiles(config)
+		buildAllFiles(config, false)
 	}
 }
 
@@ -71,8 +76,11 @@ func printHelp() {
 	fmt.Println("Running `blbld` with no arguments compiles everything directly to an executable.")
 }
 
-func buildAllFiles(config config.Config) {
+func buildAllFiles(config config.Config, debug bool) {
 	command := full.ConstructFullBuildCommand(config)
+	if debug {
+		command += " -g"
+	}
 	fmt.Println(command)
 	cmd := exec.Command("sh", "-c", command)
 	_, err := cmd.Output()
@@ -89,7 +97,11 @@ func buildAllFiles(config config.Config) {
 			os.Exit(1)
 		}
 	}
-	fmt.Println("Project built successfully!")
+	if debug {
+		fmt.Println("Debug project built successfully!")
+	} else {
+		fmt.Println("Project built successfully!")
+	}
 }
 
 func compileAllFiles(config config.Config) {
@@ -155,3 +167,4 @@ func buildCompiledFiles(config config.Config) {
 	}
 	fmt.Println("Project built successfully!")
 }
+
