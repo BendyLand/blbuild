@@ -37,6 +37,8 @@ Currently, there are a few ways to interact with the CLI (For these examples '`b
  - `blbld print`: This constructs the command from `blbld` and prints it to the console. 
    - This can be handy if you want to copy the command without running, to add things additional flags (such as -g).
 
+**Note:** In commands that result in an executable (such as `build`), including `mv` as an additional argument will move the binary to the same directory as the source files. Omitting this argument will keep its path strict to the specified output argument (-o).
+
 ## Examples
 
 > This project contains a `test` directory with some simple C++ files. To reset this directory, run `rm test/*.o test/main`.
@@ -72,11 +74,11 @@ go run . compile two.cpp
 
 Building compiled files:
 ```bash
-go run . build
+go run . build mv
 # will run: 
 g++ -std=c++20 test/*.o -o main
 # and produce:
-# main (an executable binary)
+# test/main (an executable binary)
 ```
 
 Updating single file:
