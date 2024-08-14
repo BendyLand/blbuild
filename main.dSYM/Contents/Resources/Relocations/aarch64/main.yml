@@ -1,6 +1,6 @@
 ---
 triple:          'arm64-apple-darwin'
-binary-path:     main
+binary-path:     './main'
 relocations:
   - { offsetInCU: 0x5D, offset: 0x5D, size: 0x8, addend: 0x0, symName: __ZN6exprtk7detailsL14reserved_wordsE, symObjAddr: 0x1435A08, symBinAddr: 0x1004F5328, symSize: 0x0 }
   - { offsetInCU: 0x77, offset: 0x77, size: 0x8, addend: 0x0, symName: __ZN6exprtk7detailsL16reserved_symbolsE, symObjAddr: 0x1435CF0, symBinAddr: 0x1004F5610, symSize: 0x0 }

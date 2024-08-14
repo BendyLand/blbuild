@@ -18,6 +18,7 @@ func main() {
 	config := config.ConstructConfig(configStr)
 	if len(os.Args) > 1 {
 		move := slices.Contains(os.Args, "mv")
+		debug := slices.Contains(os.Args, "debug")
 		if slices.Contains(os.Args, "compile") {
 			if len(os.Args) == 2 {
 				compileAllFiles(config)
@@ -44,9 +45,9 @@ func main() {
 		} else if slices.Contains(os.Args, "make") {
 			makeFiles(config, move)
 		} else if slices.Contains(os.Args, "debug") {
-			buildAllFiles(config, true, move)
+			buildAllFiles(config, debug, move)
 		} else if slices.Contains(os.Args, "mv") {
-			buildAllFiles(config, false, move)
+			buildAllFiles(config, debug, move)
 		}
 	} else {
 		buildAllFiles(config, false, false)
@@ -69,14 +70,14 @@ func makeFiles(config config.Config, move bool) {
 }
 
 func printHelp() {
-	commands := []string{"compile", "compile <file.c/cpp>", "build", "update <file.c/cpp>", "print", "make", "help"}
-	descriptions := []string{"Compiles all files using -c.", "Compiles the provided file using -c.", "Links every .o file into an executable.", "Compiles the provided file using -c then builds every .o file in one command.", "Prints the full command to the console, but doesn't run it.", "Concurrently compiles each file independently with -c, then links the .o files together.", "Shows this menu."}
+	commands := []string{"compile", "compile <file.c/cpp>", "build", "update <file.c/cpp>", "print", "make", "debug", "mv", "help"}
+	descriptions := []string{"Compiles all files using -c.", "Compiles the provided file using -c.", "Links every .o file into an executable.", "Compiles the provided file using -c then builds every .o file in one command.", "Prints the full command to the console, but doesn't run it.", "Concurrently compiles each file independently with -c, then links the .o files together.", "Include this command to compile the files with -g. May be used with other commands.", "Include this command to move the resulting binary to the source directory. May be used with other commands.", "Shows this menu."}
 	fmt.Println("USAGE: blbld <opt_command> <opt_file>")
 	fmt.Println("Valid commands:")
 	for i, command := range commands {
 		fmt.Println(command, "-", descriptions[i])
 	}
-	fmt.Println("Running `blbld` with no arguments compiles everything directly to an executable.")
+	fmt.Println("Running `blbld` with no arguments compiles everything directly to an executable. You may include modifier commands like `debug` and `mv`.")
 }
 
 func buildAllFiles(config config.Config, debug bool, move bool) {
