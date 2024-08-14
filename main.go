@@ -44,11 +44,9 @@ func main() {
 			printHelp()
 		} else if slices.Contains(os.Args, "make") {
 			makeFiles(config, move)
-		} else if slices.Contains(os.Args, "debug") {
+		} else {
 			buildAllFiles(config, debug, move)
-		} else if slices.Contains(os.Args, "mv") {
-			buildAllFiles(config, debug, move)
-		}
+		} 
 	} else {
 		buildAllFiles(config, false, false)
 	}
