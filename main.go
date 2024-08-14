@@ -21,9 +21,9 @@ func main() {
 		debug := slices.Contains(os.Args, "debug")
 		if slices.Contains(os.Args, "compile") {
 			if len(os.Args) == 2 {
-				compileAllFiles(config)
+				compileAllFiles(config, debug)
 			} else {
-				compileSingleFile(os.Args[2], config)
+				compileSingleFile(os.Args[2], config, debug)
 			}
 		} else if slices.Contains(os.Args, "build") {
 			buildCompiledFiles(config, move)
@@ -38,12 +38,12 @@ func main() {
 				fmt.Println("Not enough arguments. Please provide a file.")
 				return
 			}
-			compileSingleFile(os.Args[2], config)
+			compileSingleFile(os.Args[2], config, debug)
 			buildCompiledFiles(config, move)
 		} else if slices.Contains(os.Args, "help") {
 			printHelp()
 		} else if slices.Contains(os.Args, "make") {
-			makeFiles(config, move)
+			makeFiles(config, move, debug)
 		} else {
 			buildAllFiles(config, debug, move)
 		} 
@@ -52,14 +52,14 @@ func main() {
 	}
 }
 
-func makeFiles(config config.Config, move bool) {
+func makeFiles(config config.Config, move bool, debug bool) {
 	var wg sync.WaitGroup
 	for _, file := range config.Files {
 		file := utils.RemoveQuotes(file)
 		wg.Add(1)
 		go func(file string) {
 			defer wg.Done()
-			compileSingleFile(file, config)
+			compileSingleFile(file, config, debug)
 		}(file)
 	}
 	wg.Wait()
@@ -108,8 +108,11 @@ func buildAllFiles(config config.Config, debug bool, move bool) {
 	}
 }
 
-func compileAllFiles(config config.Config) {
+func compileAllFiles(config config.Config, debug bool) {
 	command := full.ConstructCompileAllFilesCommand(config)
+	if debug {
+		command += " -g"
+	}
 	fmt.Println(command)
 	cmd := exec.Command("sh", "-c", command)
 	_, err := cmd.Output()
@@ -129,8 +132,11 @@ func compileAllFiles(config config.Config) {
 	fmt.Println("Files compiled successfully!")
 }
 
-func compileSingleFile(name string, config config.Config) {
+func compileSingleFile(name string, config config.Config, debug bool) {
 	command := single.ConstructSingleFileCompilationCmd(name, config)
+	if debug {
+		command += " -g"
+	}
 	fmt.Println(command)
 	cmd := exec.Command("sh", "-c", command)
 	_, err := cmd.Output()
