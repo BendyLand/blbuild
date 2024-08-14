@@ -17,6 +17,7 @@ func main() {
 	configStr, _ := config.GetConfigFile()
 	config := config.ConstructConfig(configStr)
 	if len(os.Args) > 1 {
+		move := slices.Contains(os.Args, "mv")
 		if slices.Contains(os.Args, "compile") {
 			if len(os.Args) == 2 {
 				compileAllFiles(config)
@@ -24,7 +25,7 @@ func main() {
 				compileSingleFile(os.Args[2], config)
 			}
 		} else if slices.Contains(os.Args, "build") {
-			buildCompiledFiles(config)
+			buildCompiledFiles(config, move)
 		} else if slices.Contains(os.Args, "print") {
 			cmd := full.ConstructFullBuildCommand(config)
 			if slices.Contains(os.Args, "debug") {
@@ -37,20 +38,22 @@ func main() {
 				return
 			}
 			compileSingleFile(os.Args[2], config)
-			buildCompiledFiles(config)
+			buildCompiledFiles(config, move)
 		} else if slices.Contains(os.Args, "help") {
 			printHelp()
 		} else if slices.Contains(os.Args, "make") {
-			makeFiles(config)
+			makeFiles(config, move)
 		} else if slices.Contains(os.Args, "debug") {
-			buildAllFiles(config, true)
+			buildAllFiles(config, true, move)
+		} else if slices.Contains(os.Args, "mv") {
+			buildAllFiles(config, false, move)
 		}
 	} else {
-		buildAllFiles(config, false)
+		buildAllFiles(config, false, false)
 	}
 }
 
-func makeFiles(config config.Config) {
+func makeFiles(config config.Config, move bool) {
 	var wg sync.WaitGroup
 	for _, file := range config.Files {
 		file := utils.RemoveQuotes(file)
@@ -62,7 +65,7 @@ func makeFiles(config config.Config) {
 	}
 	wg.Wait()
 	fmt.Println("All files compiled successfully!")
-	buildCompiledFiles(config)
+	buildCompiledFiles(config, move)
 }
 
 func printHelp() {
@@ -76,7 +79,7 @@ func printHelp() {
 	fmt.Println("Running `blbld` with no arguments compiles everything directly to an executable.")
 }
 
-func buildAllFiles(config config.Config, debug bool) {
+func buildAllFiles(config config.Config, debug bool, move bool) {
 	command := full.ConstructFullBuildCommand(config)
 	if debug {
 		command += " -g"
@@ -88,13 +91,15 @@ func buildAllFiles(config config.Config, debug bool) {
 		fmt.Println("Error executing build command:", err)
 		os.Exit(1)
 	}
-	if len(config.Path) > 0 {
-		mvCmd := fmt.Sprintf("mv %s %s", config.Final, config.Path)
-		cmd = exec.Command("sh", "-c", mvCmd)
-		_, err = cmd.Output()
-		if err != nil {
-			fmt.Println("Error executing move command:", err)
-			os.Exit(1)
+	if move {
+		if len(config.Path) > 0 {
+			mvCmd := fmt.Sprintf("mv %s %s", config.Final, config.Path)
+			cmd = exec.Command("sh", "-c", mvCmd)
+			_, err = cmd.Output()
+			if err != nil {
+				fmt.Println("Error executing move command:", err)
+				os.Exit(1)
+			}
 		}
 	}
 	if debug {
@@ -147,7 +152,7 @@ func compileSingleFile(name string, config config.Config) {
 	fmt.Printf("'%s' compiled successfully!\n", name)
 }
 
-func buildCompiledFiles(config config.Config) {
+func buildCompiledFiles(config config.Config, move bool) {
 	command := full.ConstructBuildCompiledFilesCmd(config)
 	fmt.Println(command)
 	cmd := exec.Command("sh", "-c", command)
@@ -156,13 +161,15 @@ func buildCompiledFiles(config config.Config) {
 		fmt.Println("Error executing build command:", err)
 		os.Exit(1)
 	}
-	if len(config.Path) > 0 {
-		mvCmd := fmt.Sprintf("mv %s %s", config.Final, config.Path)
-		cmd = exec.Command("sh", "-c", mvCmd)
-		_, err = cmd.Output()
-		if err != nil {
-			fmt.Println("Error executing move command:", err)
-			os.Exit(1)
+	if move {
+		if len(config.Path) > 0 {
+			mvCmd := fmt.Sprintf("mv %s %s", config.Final, config.Path)
+			cmd = exec.Command("sh", "-c", mvCmd)
+			_, err = cmd.Output()
+			if err != nil {
+				fmt.Println("Error executing move command:", err)
+				os.Exit(1)
+			}
 		}
 	}
 	fmt.Println("Project built successfully!")
