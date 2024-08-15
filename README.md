@@ -37,7 +37,7 @@ Currently, there are a few ways to interact with the CLI (For these examples '`b
  - `blbld print`: This constructs the command from `blbld` and prints it to the console. 
    - This can be handy if you want to copy the command without running, to add things additional flags (such as -g).
 
-**Note:** In commands that result in an executable (such as `build`), including `mv` as an additional argument will move the binary to the same directory as the source files. Omitting this argument will keep its path strict to the specified output argument (-o).
+**Note:** In commands that result in an executable (such as `build`), including `mv` as an additional argument will move the binary to the same directory as the source files. Omitting this argument will keep its path strict to the specified output argument (-o). You may also include `debug` with various commands or on its own to include '-g' with the compilation command.
 
 ## Examples
 
