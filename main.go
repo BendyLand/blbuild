@@ -46,7 +46,7 @@ func main() {
 			makeFiles(config, move, debug)
 		} else {
 			buildAllFiles(config, debug, move)
-		} 
+		}
 	} else {
 		buildAllFiles(config, false, false)
 	}
@@ -78,8 +78,13 @@ func printHelp() {
 	fmt.Println("Running `blbld` with no arguments compiles everything directly to an executable. You may include modifier commands like `debug` and `mv`.")
 }
 
-func buildAllFiles(config config.Config, debug bool, move bool) {
-	command := full.ConstructFullBuildCommand(config)
+func buildAllFiles(configFile config.Config, debug bool, move bool) {
+	if !config.ValidateCompiler(configFile) {
+		fmt.Println("Error: Invalid compiler.")
+		os.Exit(1)
+	}
+	command := full.ConstructFullBuildCommand(configFile)
+	command = utils.Sanitize(command)
 	if debug {
 		command += " -g"
 	}
@@ -91,8 +96,8 @@ func buildAllFiles(config config.Config, debug bool, move bool) {
 		os.Exit(1)
 	}
 	if move {
-		if len(config.Path) > 0 {
-			mvCmd := fmt.Sprintf("mv %s %s", config.Final, config.Path)
+		if len(configFile.Path) > 0 {
+			mvCmd := fmt.Sprintf("mv %s %s", configFile.Final, configFile.Path)
 			cmd = exec.Command("sh", "-c", mvCmd)
 			_, err = cmd.Output()
 			if err != nil {
@@ -108,11 +113,16 @@ func buildAllFiles(config config.Config, debug bool, move bool) {
 	}
 }
 
-func compileAllFiles(config config.Config, debug bool) {
-	command := full.ConstructCompileAllFilesCommand(config)
+func compileAllFiles(configFile config.Config, debug bool) {
+	if !config.ValidateCompiler(configFile) {
+		fmt.Println("Error: Invalid compiler.")
+		os.Exit(1)
+	}
+	command := full.ConstructCompileAllFilesCommand(configFile)
 	if debug {
 		command += " -g"
 	}
+	command = utils.Sanitize(command)
 	fmt.Println(command)
 	cmd := exec.Command("sh", "-c", command)
 	_, err := cmd.Output()
@@ -120,8 +130,8 @@ func compileAllFiles(config config.Config, debug bool) {
 		fmt.Println("Error executing build command:", err)
 		os.Exit(1)
 	}
-	if len(config.Path) > 0 {
-		mvCmd := "mv *.o " + config.Path
+	if len(configFile.Path) > 0 {
+		mvCmd := "mv *.o " + configFile.Path
 		cmd = exec.Command("sh", "-c", mvCmd)
 		_, err = cmd.Output()
 		if err != nil {
@@ -132,11 +142,16 @@ func compileAllFiles(config config.Config, debug bool) {
 	fmt.Println("Files compiled successfully!")
 }
 
-func compileSingleFile(name string, config config.Config, debug bool) {
-	command := single.ConstructSingleFileCompilationCmd(name, config)
+func compileSingleFile(name string, configFile config.Config, debug bool) {
+	if !config.ValidateCompiler(configFile) {
+		fmt.Println("Error: Invalid compiler.")
+		os.Exit(1)
+	}
+	command := single.ConstructSingleFileCompilationCmd(name, configFile)
 	if debug {
 		command += " -g"
 	}
+	command = utils.Sanitize(command)
 	fmt.Println(command)
 	cmd := exec.Command("sh", "-c", command)
 	_, err := cmd.Output()
@@ -144,9 +159,9 @@ func compileSingleFile(name string, config config.Config, debug bool) {
 		fmt.Println("Error executing build command:", err)
 		os.Exit(1)
 	}
-	if len(config.Path) > 0 {
+	if len(configFile.Path) > 0 {
 		filename := name[:strings.LastIndex(name, ".")]
-		mvCmd := fmt.Sprintf("mv %s.o %s", filename, config.Path)
+		mvCmd := fmt.Sprintf("mv %s.o %s", filename, configFile.Path)
 		cmd = exec.Command("sh", "-c", mvCmd)
 		_, err = cmd.Output()
 		if err != nil {
@@ -157,8 +172,13 @@ func compileSingleFile(name string, config config.Config, debug bool) {
 	fmt.Printf("'%s' compiled successfully!\n", name)
 }
 
-func buildCompiledFiles(config config.Config, move bool) {
-	command := full.ConstructBuildCompiledFilesCmd(config)
+func buildCompiledFiles(configFile config.Config, move bool) {
+	if !config.ValidateCompiler(configFile) {
+		fmt.Println("Error: Invalid compiler.")
+		os.Exit(1)
+	}
+	command := full.ConstructBuildCompiledFilesCmd(configFile)
+	command = utils.Sanitize(command)
 	fmt.Println(command)
 	cmd := exec.Command("sh", "-c", command)
 	_, err := cmd.Output()
@@ -167,8 +187,8 @@ func buildCompiledFiles(config config.Config, move bool) {
 		os.Exit(1)
 	}
 	if move {
-		if len(config.Path) > 0 {
-			mvCmd := fmt.Sprintf("mv %s %s", config.Final, config.Path)
+		if len(configFile.Path) > 0 {
+			mvCmd := fmt.Sprintf("mv %s %s", configFile.Final, configFile.Path)
 			cmd = exec.Command("sh", "-c", mvCmd)
 			_, err = cmd.Output()
 			if err != nil {
@@ -179,4 +199,3 @@ func buildCompiledFiles(config config.Config, move bool) {
 	}
 	fmt.Println("Project built successfully!")
 }
-

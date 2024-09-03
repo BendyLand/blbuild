@@ -127,3 +127,30 @@ func ConstructConfig(config string) Config {
 	}
 	return result
 }
+
+func ValidateCompiler(config Config) bool {
+	validCompilers := []string{
+		"gcc",
+		"clang",
+		"g++",
+		"msvc",
+		"icc",
+		"scalac",
+		"rustc",
+		"javac",
+		"gc",
+		"gccgo",
+		"swiftc",
+		"fsc",
+		"csc",
+		"mcs",
+		"ghc",
+		"kotlinc",
+	}
+	for _, comp := range validCompilers {
+		if config.Compiler == comp {
+			return true
+		}
+	}
+	return false
+}
