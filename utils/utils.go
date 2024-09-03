@@ -20,7 +20,7 @@ func RemoveQuotes(str string) string {
 
 func Sanitize(command string) string {
 	var result []byte
-	validChars := regexp.MustCompile("[a-zA-Z0-9=+.\\-_/\\s]+")
+	validChars := regexp.MustCompile("[a-zA-Z0-9=*+.\\-_/\\s]+")
 	result = validChars.Find([]byte(command))
 	return string(result)
 }
