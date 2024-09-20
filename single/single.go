@@ -2,6 +2,7 @@ package single
 
 import (
 	"blbld/config"
+	"blbld/utils"
 )
 
 func ConstructSingleFileCompilationCmd(name string, config config.Config) string {
@@ -12,8 +13,9 @@ func ConstructSingleFileCompilationCmd(name string, config config.Config) string
 	} else {
 		result += "-c "
 	}
-	if len(config.Include) > 0 {
-		result += "-I " + config.Include + " "
+	for _, includePath := range config.Include {
+		temp := utils.RemoveQuotes(includePath)
+		result += "-I" + temp + " "
 	}
 	if len(config.Path) > 0 {
 		line := config.Path + "/" + name

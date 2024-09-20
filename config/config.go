@@ -14,7 +14,7 @@ type Config struct {
 	Std      string
 	Path     string
 	Files    []string
-	Include  string
+	Include  []string
 	Final    string
 }
 
@@ -69,7 +69,7 @@ func createMissingConfigFile() string {
 		case 3:
 			result += "files = " + line + "\n"
 		case 4:
-			result += "include = \"" + line + "\"\n"
+			result += "include = " + line + "\n"
 		case 5:
 			result += "final = \"" + line + "\"\n"
 		}
@@ -120,7 +120,12 @@ func ConstructConfig(config string) Config {
 				result.Files = append(result.Files, item)
 			}
 		case 4:
-			result.Include = utils.ExtractConfigValue(line)
+			temp := utils.ExtractConfigValue(line)
+			temp = strings.Trim(temp, "[]")
+			items := strings.Split(temp, ", ")
+			for _, item := range items {
+				result.Include = append(result.Include, item)
+			}
 		case 5:
 			result.Final = utils.ExtractConfigValue(line)
 		}

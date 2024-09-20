@@ -39,6 +39,7 @@ func main() {
 				return
 			}
 			compileSingleFile(os.Args[2], config, debug)
+			fmt.Println()
 			buildCompiledFiles(config, move)
 		} else if slices.Contains(os.Args, "help") {
 			printHelp()
@@ -63,7 +64,8 @@ func makeFiles(config config.Config, move bool, debug bool) {
 		}(file)
 	}
 	wg.Wait()
-	fmt.Println("All files compiled successfully!")
+	fmt.Println("\nAll files compiled successfully!")
+	fmt.Println()
 	buildCompiledFiles(config, move)
 }
 
@@ -107,9 +109,9 @@ func buildAllFiles(configFile config.Config, debug bool, move bool) {
 		}
 	}
 	if debug {
-		fmt.Println("Debug project built successfully!")
+		fmt.Println("\nDebug project built successfully!")
 	} else {
-		fmt.Println("Project built successfully!")
+		fmt.Println("\nProject built successfully!")
 	}
 }
 
@@ -139,7 +141,7 @@ func compileAllFiles(configFile config.Config, debug bool) {
 			os.Exit(1)
 		}
 	}
-	fmt.Println("Files compiled successfully!")
+	fmt.Println("\nFiles compiled successfully!")
 }
 
 func compileSingleFile(name string, configFile config.Config, debug bool) {
@@ -169,7 +171,7 @@ func compileSingleFile(name string, configFile config.Config, debug bool) {
 			os.Exit(1)
 		}
 	}
-	fmt.Printf("'%s' compiled successfully!\n", name)
+	fmt.Printf("\n'%s' compiled successfully!\n", name)
 }
 
 func buildCompiledFiles(configFile config.Config, move bool) {
@@ -197,5 +199,5 @@ func buildCompiledFiles(configFile config.Config, move bool) {
 			}
 		}
 	}
-	fmt.Println("Project built successfully!")
+	fmt.Println("\nProject built successfully!")
 }
