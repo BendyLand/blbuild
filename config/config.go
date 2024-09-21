@@ -43,9 +43,19 @@ func getMissingConfigFields() []string {
 	temp := strings.Trim(strings.Join(files, ", "), "\n")
 	filesStr = "[" + temp + "]"
 
-	fmt.Println("If you have an additional include path, please enter it here, otherwise leave it blank.")
+	fmt.Println("If you have additional include paths, please enter them here separated by spaces, otherwise leave it blank.")
 	include, _ := stdin.ReadString('\n')
-	include = strings.Trim(include, "\n")
+	includePaths := strings.Split(include, " ")
+	for i := range len(includePaths) {
+		includePaths[i] = strings.Trim(includePaths[i], "\n")
+		includePaths[i] = "\"" + includePaths[i] + "\""
+	}
+	temp2 := strings.Trim(strings.Join(includePaths, ", "), "\n")
+	if temp2 != "\"\"" {
+		include = "[" + temp2 + "]"
+	} else {
+		include = "[]"
+	}
 
 	fmt.Println("Please enter the name you would like to use for the final executable.")
 	final, _ := stdin.ReadString('\n')

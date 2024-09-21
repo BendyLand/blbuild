@@ -13,8 +13,10 @@ func ConstructCompileAllFilesCommand(config config.Config) string {
 		result += "-std=" + config.Std + " -c "
 	}
 	for _, includePath := range config.Include {
-		temp := utils.RemoveQuotes(includePath)
-		result += "-I" + temp + " "
+		if len(includePath) > 0 {
+			temp := utils.RemoveQuotes(includePath)
+			result += "-I" + temp + " "
+		}
 	}
 	for _, file := range config.Files {
 		if len(config.Path) > 0 {
@@ -33,8 +35,10 @@ func ConstructFullBuildCommand(config config.Config) string {
 		result += "-std=" + config.Std + " "
 	}
 	for _, includePath := range config.Include {
-		temp := utils.RemoveQuotes(includePath)
-		result += "-I" + temp + " "
+		if len(includePath) > 0 {
+			temp := utils.RemoveQuotes(includePath)
+			result += "-I" + temp + " "
+		}
 	}
 	for _, file := range config.Files {
 		if len(config.Path) > 0 {
@@ -54,8 +58,10 @@ func ConstructBuildCompiledFilesCmd(config config.Config) string {
 		result += "-std=" + config.Std + " "
 	}
 	for _, includePath := range config.Include {
-		temp := utils.RemoveQuotes(includePath)
-		result += "-I" + temp + " "
+		if len(includePath) > 0 {
+			temp := utils.RemoveQuotes(includePath)
+			result += "-I" + temp + " "
+		}
 	}
 	if len(config.Path) > 0 {
 		result += config.Path + "/*.o "
