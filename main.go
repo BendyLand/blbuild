@@ -1,9 +1,9 @@
 package main
 
 import (
+	"blbld/commands"
 	"blbld/config"
 	"os"
-	"blbld/commands"
 )
 
 func main() {
