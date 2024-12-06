@@ -1,5 +1,5 @@
-compiler = "gcc"
-std = ""
+compiler = "g++"
+std = "c++20"
 path = "bigtest/src"
 files = ["arithmetic.cpp", "lexer.cpp", "logging.cpp", "main.cpp", "symbols.cpp", "utils.cpp"]
 include = ["bigtest/src/include", "test"]

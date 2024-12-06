@@ -184,8 +184,9 @@ func ConstructConfig(config string) Config {
 func ValidateCompiler(config Config) bool {
 	validCompilers := []string{
 		"gcc",
-		"clang",
 		"g++",
+		"clang",
+		"clang++",
 		"msvc",
 		"icc",
 		"scalac",

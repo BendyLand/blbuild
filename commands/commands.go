@@ -72,17 +72,35 @@ func printHelp() {
 		fmt.Println(command, "-", descriptions[i])
 	}
 	fmt.Println("Running `blbld` with no arguments compiles everything directly to an executable. You may include modifier commands like `debug` and `mv`.")
+	fmt.Println("Running `blbld` on Windows requires MinGW to be installed at 'C:\\mingw64'.")
+}
+
+func wrapCompilerCommand(compiler string) string {
+	platform := config.DetectOS()
+	if platform == "Windows" {
+		// Assuming MinGW or a similar setup, specify the full path if necessary
+		// Replace "g++" with the full path if not in PATH
+		newCompiler := fmt.Sprintf("C:\\mingw64\\bin\\%s.exe", compiler)
+		compiler = strings.Replace(compiler, compiler, newCompiler, 1)
+	}
+	return compiler
 }
 
 func platformExec(command string) *exec.Cmd {
+	command = wrapCompilerCommand(command) // Adjust command for platform-specific quirks
 	var result *exec.Cmd
 	platform := config.DetectOS()
 	switch platform {
 	case "Windows":
+		// Wrap the command in quotes for Windows cmd.exe
+		command = fmt.Sprintf(`cmd.exe /C "%s"`, command)
+		fmt.Println(command)
 		result = exec.Command("cmd.exe", "/C", command)
 	default:
+		fmt.Println(command)
 		result = exec.Command("sh", "-c", command)
 	}
+
 	return result
 }
 
@@ -97,7 +115,6 @@ func BuildAllFiles(configFile config.Config, debug bool, move bool) {
 	if debug {
 		command += " -g"
 	}
-	fmt.Println(command)
 	cmd := platformExec(command) 
 	_, err := cmd.Output()
 	if err != nil {
@@ -132,7 +149,6 @@ func compileAllFiles(configFile config.Config, debug bool) {
 		command += " -g"
 	}
 	command = utils.Sanitize(command)
-	fmt.Println(command)
 	cmd := platformExec(command)
 	_, err := cmd.Output()
 	if err != nil {
@@ -161,7 +177,6 @@ func compileSingleFile(name string, configFile config.Config, debug bool) {
 		command += " -g"
 	}
 	command = utils.Sanitize(command)
-	fmt.Println(command)
 	cmd := platformExec(command)
 	_, err := cmd.Output()
 	if err != nil {
@@ -188,7 +203,6 @@ func buildCompiledFiles(configFile config.Config, move bool) {
 	}
 	command := full.ConstructBuildCompiledFilesCmd(configFile)
 	command = utils.Sanitize(command)
-	fmt.Println(command)
 	cmd := platformExec(command)
 	_, err := cmd.Output()
 	if err != nil {
