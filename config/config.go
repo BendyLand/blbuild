@@ -5,6 +5,7 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"runtime"
 	"path/filepath"
 	"strings"
 )
@@ -18,26 +19,62 @@ type Config struct {
 	Final    string
 }
 
-func getMissingConfigFields() []string {
+
+func detectOS() string {
+	os := runtime.GOOS
+	var result string
+	switch os {
+	case "windows":
+		result = "Windows"
+	case "darwin":
+		result = "MacOS"
+	case "linux":
+		result = "Linux"
+	case "freebsd":
+		result = "FreeBSD"
+	case "openbsd":
+		result = "OpenBSD"
+	case "netbsd":
+		result = "NetBSD"
+	case "dragonfly":
+		result = "DragonflyBSD"
+	default:
+		result = "Unknown"
+	}
+	return result
+}
+
+func platformTrim(str string, platform string) string {
+	var result string
+	switch platform {
+	case "Windows":
+		result = strings.Trim(str, "\r\n")
+	default:
+		result = strings.Trim(str, "\n")
+	}
+	return result
+}
+
+func getMissingConfigFields(platform string) []string {
 	stdin := bufio.NewReader(os.Stdin)
 	fmt.Println("What compiler would you like to use?")
 	compiler, _ := stdin.ReadString('\n')
-	compiler = strings.Trim(compiler, "\n")
+	compiler = platformTrim(compiler, platform)
 
 	fmt.Println("What std would you like to use? You may leave this blank.")
 	std, _ := stdin.ReadString('\n')
-	std = strings.Trim(std, "\n")
+	std = platformTrim(std, platform)
 
 	fmt.Println("What is the path from the root directory to where the files are located?")
 	fmt.Println("(Keep blank for the root directory.)")
 	path, _ := stdin.ReadString('\n')
-	path = strings.Trim(path, "\n")
+	path = platformTrim(path, platform)
 
 	fmt.Println("Please enter all of your files separated by spaces, and then a newline.")
 	filesStr, _ := stdin.ReadString('\n')
 	files := strings.Split(filesStr, " ")
 	for i := range len(files) {
-		files[i] = strings.Trim(files[i], "\n")
+		files[i] = platformTrim(files[i], platform)
 		files[i] = "\"" + files[i] + "\""
 	}
 	temp := strings.Trim(strings.Join(files, ", "), "\n")
@@ -47,7 +84,7 @@ func getMissingConfigFields() []string {
 	include, _ := stdin.ReadString('\n')
 	includePaths := strings.Split(include, " ")
 	for i := range len(includePaths) {
-		includePaths[i] = strings.Trim(includePaths[i], "\n")
+		includePaths[i] = platformTrim(includePaths[i], platform)
 		includePaths[i] = "\"" + includePaths[i] + "\""
 	}
 	temp2 := strings.Trim(strings.Join(includePaths, ", "), "\n")
@@ -59,7 +96,7 @@ func getMissingConfigFields() []string {
 
 	fmt.Println("Please enter the name you would like to use for the final executable.")
 	final, _ := stdin.ReadString('\n')
-	final = strings.Trim(final, "\n")
+	final = platformTrim(final, platform)
 
 	lines := []string{compiler, std, path, filesStr, include, final}
 	return lines
@@ -67,7 +104,8 @@ func getMissingConfigFields() []string {
 
 func createMissingConfigFile() string {
 	var result string
-	lines := getMissingConfigFields()
+	platform := detectOS()
+	lines := getMissingConfigFields(platform)
 	for i, line := range lines {
 		switch i {
 		case 0:
