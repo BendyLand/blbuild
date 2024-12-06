@@ -5,8 +5,8 @@ import (
 	"bufio"
 	"fmt"
 	"os"
-	"runtime"
 	"path/filepath"
+	"runtime"
 	"strings"
 )
 
@@ -20,7 +20,7 @@ type Config struct {
 }
 
 
-func detectOS() string {
+func DetectOS() string {
 	os := runtime.GOOS
 	var result string
 	switch os {
@@ -44,7 +44,7 @@ func detectOS() string {
 	return result
 }
 
-func platformTrim(str string, platform string) string {
+func PlatformTrim(str string, platform string) string {
 	var result string
 	switch platform {
 	case "Windows":
@@ -59,22 +59,22 @@ func getMissingConfigFields(platform string) []string {
 	stdin := bufio.NewReader(os.Stdin)
 	fmt.Println("What compiler would you like to use?")
 	compiler, _ := stdin.ReadString('\n')
-	compiler = platformTrim(compiler, platform)
+	compiler = PlatformTrim(compiler, platform)
 
 	fmt.Println("What std would you like to use? You may leave this blank.")
 	std, _ := stdin.ReadString('\n')
-	std = platformTrim(std, platform)
+	std = PlatformTrim(std, platform)
 
 	fmt.Println("What is the path from the root directory to where the files are located?")
 	fmt.Println("(Keep blank for the root directory.)")
 	path, _ := stdin.ReadString('\n')
-	path = platformTrim(path, platform)
+	path = PlatformTrim(path, platform)
 
 	fmt.Println("Please enter all of your files separated by spaces, and then a newline.")
 	filesStr, _ := stdin.ReadString('\n')
 	files := strings.Split(filesStr, " ")
 	for i := range len(files) {
-		files[i] = platformTrim(files[i], platform)
+		files[i] = PlatformTrim(files[i], platform)
 		files[i] = "\"" + files[i] + "\""
 	}
 	temp := strings.Trim(strings.Join(files, ", "), "\n")
@@ -84,7 +84,7 @@ func getMissingConfigFields(platform string) []string {
 	include, _ := stdin.ReadString('\n')
 	includePaths := strings.Split(include, " ")
 	for i := range len(includePaths) {
-		includePaths[i] = platformTrim(includePaths[i], platform)
+		includePaths[i] = PlatformTrim(includePaths[i], platform)
 		includePaths[i] = "\"" + includePaths[i] + "\""
 	}
 	temp2 := strings.Trim(strings.Join(includePaths, ", "), "\n")
@@ -96,7 +96,7 @@ func getMissingConfigFields(platform string) []string {
 
 	fmt.Println("Please enter the name you would like to use for the final executable.")
 	final, _ := stdin.ReadString('\n')
-	final = platformTrim(final, platform)
+	final = PlatformTrim(final, platform)
 
 	lines := []string{compiler, std, path, filesStr, include, final}
 	return lines
@@ -104,7 +104,7 @@ func getMissingConfigFields(platform string) []string {
 
 func createMissingConfigFile() string {
 	var result string
-	platform := detectOS()
+	platform := DetectOS()
 	lines := getMissingConfigFields(platform)
 	for i, line := range lines {
 		switch i {
@@ -155,27 +155,27 @@ func ConstructConfig(config string) Config {
 	for i, line := range lines {
 		switch i {
 		case 0:
-			result.Compiler = utils.ExtractConfigValue(line)
+			result.Compiler = ExtractConfigValue(line)
 		case 1:
-			result.Std = utils.ExtractConfigValue(line)
+			result.Std = ExtractConfigValue(line)
 		case 2:
-			result.Path = utils.ExtractConfigValue(line)
+			result.Path = ExtractConfigValue(line)
 		case 3:
-			temp := utils.ExtractConfigValue(line)
+			temp := ExtractConfigValue(line)
 			temp = strings.Trim(temp, "[]")
 			items := strings.Split(temp, ", ")
 			for _, item := range items {
 				result.Files = append(result.Files, item)
 			}
 		case 4:
-			temp := utils.ExtractConfigValue(line)
+			temp := ExtractConfigValue(line)
 			temp = strings.Trim(temp, "[]")
 			items := strings.Split(temp, ", ")
 			for _, item := range items {
 				result.Include = append(result.Include, item)
 			}
 		case 5:
-			result.Final = utils.ExtractConfigValue(line)
+			result.Final = ExtractConfigValue(line)
 		}
 	}
 	return result
@@ -206,4 +206,16 @@ func ValidateCompiler(config Config) bool {
 		}
 	}
 	return false
+}
+
+func ExtractConfigValue(configLine string) string {
+	idx := strings.Index(configLine, "=")
+	result := configLine
+	if idx > 0 {
+		result = configLine[idx+1:]
+	}
+	platform := DetectOS()
+	platform = PlatformTrim(result, platform)
+	platform = utils.RemoveQuotes(platform)
+	return platform
 }
