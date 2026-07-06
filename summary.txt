@@ -1,0 +1,594 @@
+// commands.go
+package commands
+
+import (
+	"blbld/config"
+	"blbld/full"
+	"blbld/single"
+	"blbld/utils"
+	"fmt"
+	"os"
+	"os/exec"
+	"strings"
+	"sync"
+	"slices"
+)
+
+func ExecuteSpecialCommand(config config.Config) {
+		move := slices.Contains(os.Args, "mv")
+		debug := slices.Contains(os.Args, "debug")
+		if slices.Contains(os.Args, "compile") {
+			if len(os.Args) == 2 {
+				compileAllFiles(config, debug)
+			} else {
+				compileSingleFile(os.Args[2], config, debug)
+			}
+		} else if slices.Contains(os.Args, "build") {
+			buildCompiledFiles(config, move)
+		} else if slices.Contains(os.Args, "print") {
+			cmd := full.ConstructFullBuildCommand(config)
+			if slices.Contains(os.Args, "debug") {
+				cmd += " -g"
+			}
+			fmt.Println(cmd)
+		} else if slices.Contains(os.Args, "update") {
+			if len(os.Args) == 2 {
+				fmt.Println("Not enough arguments. Please provide a file.")
+				return
+			}
+			compileSingleFile(os.Args[2], config, debug)
+			fmt.Println()
+			buildCompiledFiles(config, move)
+		} else if slices.Contains(os.Args, "help") {
+			printHelp()
+		} else if slices.Contains(os.Args, "make") {
+			makeFiles(config, move, debug)
+		} else {
+			BuildAllFiles(config, debug, move)
+		}
+}
+
+func makeFiles(config config.Config, move bool, debug bool) {
+	var wg sync.WaitGroup
+	for _, file := range config.Files {
+		file := utils.RemoveQuotes(file)
+		wg.Add(1)
+		go func(file string) {
+			defer wg.Done()
+			compileSingleFile(file, config, debug)
+		}(file)
+	}
+	wg.Wait()
+	fmt.Println("\nAll files compiled successfully!")
+	fmt.Println()
+	buildCompiledFiles(config, move)
+}
+
+func printHelp() {
+	commands := []string{"compile", "compile <file.c/cpp>", "build", "update <file.c/cpp>", "print", "make", "debug", "mv", "help"}
+	descriptions := []string{"Compiles all files using -c.", "Compiles the provided file using -c.", "Links every .o file into an executable.", "Compiles the provided file using -c then builds every .o file in one command.", "Prints the full command to the console, but doesn't run it.", "Concurrently compiles each file independently with -c, then links the .o files together.", "Include this command to compile the files with -g. May be used with other commands.", "Include this command to move the resulting binary to the source directory. May be used with other commands.", "Shows this menu."}
+	fmt.Println("USAGE: blbld <opt_command> <opt_file>")
+	fmt.Println("Valid commands:")
+	for i, command := range commands {
+		fmt.Println(command, "-", descriptions[i])
+	}
+	fmt.Println("Running `blbld` with no arguments compiles everything directly to an executable. You may include modifier commands like `debug` and `mv`.")
+	fmt.Println("Running `blbld` on Windows requires MinGW to be installed at 'C:\\mingw64'.")
+}
+
+func wrapCompilerCommand(compiler string) string {
+	platform := config.DetectOS()
+	if platform == "Windows" {
+		// Assuming MinGW or a similar setup, specify the full path if necessary
+		// Replace "g++" with the full path if not in PATH
+		newCompiler := fmt.Sprintf("C:\\mingw64\\bin\\%s.exe", compiler)
+		compiler = strings.Replace(compiler, compiler, newCompiler, 1)
+	}
+	return compiler
+}
+
+func platformExec(command string) *exec.Cmd {
+	command = wrapCompilerCommand(command) // Adjust command for platform-specific quirks
+	var result *exec.Cmd
+	platform := config.DetectOS()
+	switch platform {
+	case "Windows":
+		// Wrap the command in quotes for Windows cmd.exe
+		command = fmt.Sprintf(`cmd.exe /C "%s"`, command)
+		fmt.Println(command)
+		result = exec.Command("cmd.exe", "/C", command)
+	default:
+		fmt.Println(command)
+		result = exec.Command("sh", "-c", command)
+	}
+
+	return result
+}
+
+func BuildAllFiles(configFile config.Config, debug bool, move bool) {
+	if !config.ValidateCompiler(configFile) {
+		fmt.Println(configFile.Compiler)
+		fmt.Println("Error: Invalid compiler.")
+		os.Exit(1)
+	}
+	command := full.ConstructFullBuildCommand(configFile)
+	command = utils.Sanitize(command)
+	if debug {
+		command += " -g"
+	}
+	cmd := platformExec(command) 
+	_, err := cmd.Output()
+	if err != nil {
+		fmt.Println("Error executing build command:", err)
+		os.Exit(1)
+	}
+	if move {
+		if len(configFile.Path) > 0 {
+			mvCmd := fmt.Sprintf("mv %s %s", configFile.Final, configFile.Path)
+			cmd = platformExec(mvCmd)
+			_, err = cmd.Output()
+			if err != nil {
+				fmt.Println("Error executing move command:", err)
+				os.Exit(1)
+			}
+		}
+	}
+	if debug {
+		fmt.Println("\nDebug project built successfully!")
+	} else {
+		fmt.Println("\nProject built successfully!")
+	}
+}
+
+func compileAllFiles(configFile config.Config, debug bool) {
+	if !config.ValidateCompiler(configFile) {
+		fmt.Println("Error: Invalid compiler.")
+		os.Exit(1)
+	}
+	command := full.ConstructCompileAllFilesCommand(configFile)
+	if debug {
+		command += " -g"
+	}
+	command = utils.Sanitize(command)
+	cmd := platformExec(command)
+	_, err := cmd.Output()
+	if err != nil {
+		fmt.Println("Error executing build command:", err)
+		os.Exit(1)
+	}
+	if len(configFile.Path) > 0 {
+		mvCmd := "mv *.o " + configFile.Path
+		cmd = platformExec(mvCmd)
+		_, err = cmd.Output()
+		if err != nil {
+			fmt.Println("Error executing move command:", err)
+			os.Exit(1)
+		}
+	}
+	fmt.Println("\nFiles compiled successfully!")
+}
+
+func compileSingleFile(name string, configFile config.Config, debug bool) {
+	if !config.ValidateCompiler(configFile) {
+		fmt.Println("Error: Invalid compiler.")
+		os.Exit(1)
+	}
+	command := single.ConstructSingleFileCompilationCmd(name, configFile)
+	if debug {
+		command += " -g"
+	}
+	command = utils.Sanitize(command)
+	cmd := platformExec(command)
+	_, err := cmd.Output()
+	if err != nil {
+		fmt.Println("Error executing build command:", err)
+		os.Exit(1)
+	}
+	if len(configFile.Path) > 0 {
+		filename := name[:strings.LastIndex(name, ".")]
+		mvCmd := fmt.Sprintf("mv %s.o %s", filename, configFile.Path)
+		cmd = platformExec(mvCmd)
+		_, err = cmd.Output()
+		if err != nil {
+			fmt.Println("Error executing move command:", err)
+			os.Exit(1)
+		}
+	}
+	fmt.Printf("\n'%s' compiled successfully!\n", name)
+}
+
+func buildCompiledFiles(configFile config.Config, move bool) {
+	if !config.ValidateCompiler(configFile) {
+		fmt.Println("Error: Invalid compiler.")
+		os.Exit(1)
+	}
+	command := full.ConstructBuildCompiledFilesCmd(configFile)
+	command = utils.Sanitize(command)
+	cmd := platformExec(command)
+	_, err := cmd.Output()
+	if err != nil {
+		fmt.Println("Error executing build command:", err)
+		os.Exit(1)
+	}
+	if move {
+		if len(configFile.Path) > 0 {
+			mvCmd := fmt.Sprintf("mv %s %s", configFile.Final, configFile.Path)
+			cmd = platformExec(mvCmd)
+			_, err = cmd.Output()
+			if err != nil {
+				fmt.Println("Error executing move command:", err)
+				os.Exit(1)
+			}
+		}
+	}
+	fmt.Println("\nProject built successfully!")
+}
+
+// config.go
+package config
+
+import (
+	"blbld/utils"
+	"bufio"
+	"fmt"
+	"os"
+	"path/filepath"
+	"runtime"
+	"strings"
+)
+
+type Config struct {
+	Compiler string
+	Std      string
+	Path     string
+	Files    []string
+	Include  []string
+	Final    string
+}
+
+
+func DetectOS() string {
+	os := runtime.GOOS
+	var result string
+	switch os {
+	case "windows":
+		result = "Windows"
+	case "darwin":
+		result = "MacOS"
+	case "linux":
+		result = "Linux"
+	case "freebsd":
+		result = "FreeBSD"
+	case "openbsd":
+		result = "OpenBSD"
+	case "netbsd":
+		result = "NetBSD"
+	case "dragonfly":
+		result = "DragonflyBSD"
+	default:
+		result = "Unknown"
+	}
+	return result
+}
+
+func PlatformTrim(str string, platform string) string {
+	var result string
+	switch platform {
+	case "Windows":
+		result = strings.Trim(str, "\r\n")
+	default:
+		result = strings.Trim(str, "\n")
+	}
+	return result
+}
+
+func getMissingConfigFields(platform string) []string {
+	stdin := bufio.NewReader(os.Stdin)
+	fmt.Println("What compiler would you like to use?")
+	compiler, _ := stdin.ReadString('\n')
+	compiler = PlatformTrim(compiler, platform)
+
+	fmt.Println("What std would you like to use? You may leave this blank.")
+	std, _ := stdin.ReadString('\n')
+	std = PlatformTrim(std, platform)
+
+	fmt.Println("What is the path from the root directory to where the files are located?")
+	fmt.Println("(Keep blank for the root directory.)")
+	path, _ := stdin.ReadString('\n')
+	path = PlatformTrim(path, platform)
+
+	fmt.Println("Please enter all of your files separated by spaces, and then a newline.")
+	filesStr, _ := stdin.ReadString('\n')
+	files := strings.Split(filesStr, " ")
+	for i := range len(files) {
+		files[i] = PlatformTrim(files[i], platform)
+		files[i] = "\"" + files[i] + "\""
+	}
+	temp := strings.Trim(strings.Join(files, ", "), "\n")
+	filesStr = "[" + temp + "]"
+
+	fmt.Println("If you have additional include paths, please enter them here separated by spaces, otherwise leave it blank.")
+	include, _ := stdin.ReadString('\n')
+	includePaths := strings.Split(include, " ")
+	for i := range len(includePaths) {
+		includePaths[i] = PlatformTrim(includePaths[i], platform)
+		includePaths[i] = "\"" + includePaths[i] + "\""
+	}
+	temp2 := strings.Trim(strings.Join(includePaths, ", "), "\n")
+	if temp2 != "\"\"" {
+		include = "[" + temp2 + "]"
+	} else {
+		include = "[]"
+	}
+
+	fmt.Println("Please enter the name you would like to use for the final executable.")
+	final, _ := stdin.ReadString('\n')
+	final = PlatformTrim(final, platform)
+
+	lines := []string{compiler, std, path, filesStr, include, final}
+	return lines
+}
+
+func createMissingConfigFile() string {
+	var result string
+	platform := DetectOS()
+	lines := getMissingConfigFields(platform)
+	for i, line := range lines {
+		switch i {
+		case 0:
+			result += "compiler = \"" + line + "\"\n"
+		case 1:
+			result += "std = \"" + line + "\"\n"
+		case 2:
+			result += "path = \"" + line + "\"\n"
+		case 3:
+			result += "files = " + line + "\n"
+		case 4:
+			result += "include = " + line + "\n"
+		case 5:
+			result += "final = \"" + line + "\"\n"
+		}
+	}
+	file, err := os.Create("blbld.toml")
+	if err != nil {
+		fmt.Println("Error automatically creating build file.\nPlease make your own to avoid re-entering details each time.")
+	} else {
+		file.WriteString(result)
+		file.Close()
+	}
+	return result
+}
+
+func GetConfigFile() (string, error) {
+	path, err := os.Getwd()
+	configPath := filepath.Join(path, "blbld.toml")
+	_, err = os.Stat(configPath)
+	if err == nil {
+		result, err := os.ReadFile(configPath)
+		if err != nil {
+			e := fmt.Errorf("Error reading file:%s\n", err)
+			return "", e
+		}
+		return string(result), nil
+	}
+	fmt.Println("No config file detected. Let's create one:")
+	config := createMissingConfigFile()
+	return config, nil
+}
+
+func ConstructConfig(config string) Config {
+	lines := strings.Split(config, "\n")
+	var result Config
+	for i, line := range lines {
+		switch i {
+		case 0:
+			result.Compiler = ExtractConfigValue(line)
+		case 1:
+			result.Std = ExtractConfigValue(line)
+		case 2:
+			result.Path = ExtractConfigValue(line)
+		case 3:
+			temp := ExtractConfigValue(line)
+			temp = strings.Trim(temp, "[]")
+			items := strings.Split(temp, ", ")
+			for _, item := range items {
+				result.Files = append(result.Files, item)
+			}
+		case 4:
+			temp := ExtractConfigValue(line)
+			temp = strings.Trim(temp, "[]")
+			items := strings.Split(temp, ", ")
+			for _, item := range items {
+				result.Include = append(result.Include, item)
+			}
+		case 5:
+			result.Final = ExtractConfigValue(line)
+		}
+	}
+	return result
+}
+
+func ValidateCompiler(config Config) bool {
+	validCompilers := []string{
+		"gcc",
+		"g++",
+		"clang",
+		"clang++",
+		"msvc",
+		"icc",
+		"scalac",
+		"rustc",
+		"javac",
+		"gc",
+		"gccgo",
+		"swiftc",
+		"fsc",
+		"csc",
+		"mcs",
+		"ghc",
+		"kotlinc",
+	}
+	for _, comp := range validCompilers {
+		if config.Compiler == comp {
+			return true
+		}
+	}
+	return false
+}
+
+func ExtractConfigValue(configLine string) string {
+	idx := strings.Index(configLine, "=")
+	result := configLine
+	if idx > 0 {
+		result = configLine[idx+1:]
+	}
+	platform := DetectOS()
+	platform = PlatformTrim(result, platform)
+	platform = utils.RemoveQuotes(platform)
+	return platform
+}
+
+// full.go
+package full
+
+import (
+	"blbld/config"
+	"blbld/utils"
+	"path/filepath"
+)
+
+func ConstructCompileAllFilesCommand(config config.Config) string {
+	result := ""
+	result += config.Compiler + " "
+	if len(config.Std) > 0 {
+		result += "-std=" + config.Std + " -c "
+	}
+	for _, includePath := range config.Include {
+		if len(includePath) > 0 {
+			temp := utils.RemoveQuotes(includePath)
+			result += "-I" + temp + " "
+		}
+	}
+	for _, file := range config.Files {
+		if len(config.Path) > 0 {
+			result += filepath.Join(config.Path, utils.RemoveQuotes(file)) + " "
+		} else {
+			result += utils.RemoveQuotes(file) + " "
+		}
+	}
+	return result
+}
+
+func ConstructFullBuildCommand(config config.Config) string {
+	result := ""
+	result += config.Compiler + " "
+	if len(config.Std) > 0 {
+		result += "-std=" + config.Std + " "
+	}
+	for _, includePath := range config.Include {
+		if len(includePath) > 0 {
+			temp := utils.RemoveQuotes(includePath)
+			result += "-I" + temp + " "
+		}
+	}
+	for _, file := range config.Files {
+		if len(config.Path) > 0 {
+			result += filepath.Join(config.Path, utils.RemoveQuotes(file)) + " "
+		} else {
+			result += utils.RemoveQuotes(file) + " "
+		}
+	}
+	result += "-o " + config.Final
+	return result
+}
+
+func ConstructBuildCompiledFilesCmd(config config.Config) string {
+	result := ""
+	result += config.Compiler + " "
+	if len(config.Std) > 0 {
+		result += "-std=" + config.Std + " "
+	}
+	for _, includePath := range config.Include {
+		if len(includePath) > 0 {
+			temp := utils.RemoveQuotes(includePath)
+			result += "-I" + temp + " "
+		}
+	}
+	if len(config.Path) > 0 {
+		result += config.Path + "/*.o "
+	} else {
+		result += "*.o "
+	}
+	result += "-o " + config.Final
+	return result
+}
+
+// main.go
+package main
+
+import (
+	"blbld/commands"
+	"blbld/config"
+	"os"
+)
+
+func main() {
+	configStr, _ := config.GetConfigFile()
+	config := config.ConstructConfig(configStr)
+	if len(os.Args) > 1 {
+		commands.ExecuteSpecialCommand(config)
+	} else {
+		commands.BuildAllFiles(config, false, false)
+	}
+}
+
+// single.go
+package single
+
+import (
+	"blbld/config"
+	"blbld/utils"
+)
+
+func ConstructSingleFileCompilationCmd(name string, config config.Config) string {
+	result := ""
+	result += config.Compiler + " "
+	if len(config.Std) > 0 {
+		result += "-std=" + config.Std + " -c "
+	} else {
+		result += "-c "
+	}
+	for _, includePath := range config.Include {
+		if len(includePath) > 0 {
+			temp := utils.RemoveQuotes(includePath)
+			result += "-I" + temp + " "
+		}
+	}
+	if len(config.Path) > 0 {
+		line := config.Path + "/" + name
+		result += line
+	} else {
+		result += name
+	}
+	return result
+}
+
+// utils.go
+package utils
+
+import (
+	"regexp"
+	"strings"
+)
+
+
+func RemoveQuotes(str string) string {
+	return strings.Trim(str, " \"")
+}
+
+func Sanitize(command string) string {
+	var result []byte
+	validChars := regexp.MustCompile("[a-zA-Z0-9=*+.\\-_/\\s]+")
+	result = validChars.Find([]byte(command))
+	return string(result)
+}
